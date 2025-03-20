@@ -1,0 +1,187 @@
+# Design of IIR digital filters
+
+import sys
+import math
+import control
+import numpy as np
+from scipy import signal as sig
+from scipy import fft 
+from matplotlib import pyplot as plt
+from qpsolvers import solve_qp
+
+
+# MIN 1/2 x^T Q x+r^T x with Bx <= d
+# Solve qp(Q,r,B,d)
+
+
+##--------------------------------------------##
+##-----------------First part-----------------##
+# Independent parameters
+# n = 14
+# m = 14
+# tau = 12
+# Ws = 0.475 * math.pi
+# Wp = 0.525 * math.pi
+# Ns = 10000
+# M = 100
+# delta = 0.00001
+# epsilon = 0.00001
+
+# # Dependent parameters
+# j = complex(0, 1)
+# nm = n + m + 1
+# deltaW = math.pi / Ns
+# Ns_s = round(Ws / deltaW)
+# Ns_p = round((math.pi - Wp) / deltaW)
+# deltaM = math.pi / M
+# NV = np.arange(1, n + 1); NV=NV[:, np.newaxis] 
+# MV = np.arange(0, m + 1); MV=MV[:, np.newaxis]
+
+
+# # Main
+# x = np.zeros((nm, 1))
+# deltaX = 1000
+# iter = 0
+
+# while (deltaX > epsilon):
+#     iter += 1
+#     print(f"Iteration {iter}")
+    
+#     xp = x.copy()
+#     a = x[0: n, 0]; a=a[:, np.newaxis]
+
+#     # Get Q
+#     # Stopband
+#     Qs = np.zeros((nm, nm)) 
+#     for iw in range(0, Ns_s + 1):
+#         w = iw * deltaW
+#         eaw = np.exp(-j * NV * w)
+#         WH = 1 / (abs(1 + np.transpose(a) @ eaw)) ** 2 # Omega hat 
+
+#         ew = np.vstack((np.zeros((n, 1)), -np.exp(-j * MV * w))) # [1, ebw]
+#         Qs = Qs + WH * (ew @ np.transpose(np.conjugate(ew)))
+
+#     Qs *= Ws / (Ns_s + 1) # Get average
+
+#     # Passband
+#     r = np.zeros((nm , 1))
+#     Qp = np.zeros((nm, nm)) 
+#     for iw in range(0, Ns_p + 1):
+#         w =  Wp + iw * deltaW
+#         eaw = np.exp(-j * NV * w)
+#         WH = 1 / (abs(1 + np.transpose(a) @ eaw)) ** 2
+        
+#         ew = np.vstack((np.exp(-j * tau * w) * eaw, -np.exp(-j * MV * w))) 
+#         r = r + WH * np.real(np.conjugate(np.exp(-j * tau * w)) * ew)
+#         Qp = Qp + WH * ew @ np.transpose(np.conjugate(ew))
+
+#     r *= (math.pi - Wp) / (Ns_p + 1) # Get average
+#     Qp *= (math.pi - Wp) / (Ns_p + 1)
+
+#     Q = np.real(Qp + Qs) 
+
+
+#     B = np.zeros((M + 1, nm))
+#     for iw in range(0, M + 1):
+#         w = iw * deltaM
+#         B[iw, 0: n] = -np.cos(np.transpose(NV) * w) 
+
+#     d = (1 - delta) * np.ones((M + 1, 1))
+
+    
+#     # Solve 
+#     x = solve_qp(Q, r, B, d, solver = 'quadprog'); x=x[:, np.newaxis]
+#     a = x[0: n, 0]; a=a[:, np.newaxis]
+#     b = x[n: nm, 0]; b=b[:, np.newaxis]
+#     print(f"a = {a}\n\nb = {b}")
+
+#     deltaX = np.linalg.norm(x - xp) / np.linalg.norm(x)
+#     print(f"deltaX = {deltaX}\n") 
+
+
+# np.save("IIR_highpass_filter.npy", x)
+# sys.exit()
+
+
+##--------------------------------------------##
+##----------------Second part-----------------##
+# Independent parameters
+n = 14
+m = 14
+tau = 12
+Ws = 0.475 * math.pi
+Wp = 0.525 * math.pi
+Ns = 10000
+M = 100
+delta = 0.00001
+epsilon = 0.00001
+
+# Dependent parameters
+j = complex(0, 1)
+nm = n + m + 1
+deltaW = math.pi / Ns
+Ns_s = round(Ws / deltaW)
+Ns_p = round((math.pi - Wp) / deltaW)
+deltaM = math.pi / M
+NV = np.arange(1, n + 1); NV=NV[:, np.newaxis] 
+MV = np.arange(0, m + 1); MV=MV[:, np.newaxis]
+
+
+x = np.load("IIR_highpass_filter.npy")
+a = x[0: n, 0]; a=a[:, np.newaxis]
+b = x[n: nm, 0]; b=b[:, np.newaxis]
+
+
+# Plot amplitude response
+rr = np.linspace(0, math.pi, num=Ns+1); rr=rr[:, np.newaxis]
+aa = np.vstack((np.ones((1, 1)) , a))
+AR = np.absolute(sig.freqz(b, aa, rr))
+plt.subplot(2, 3, 1)
+plt.plot(rr / math.pi, AR[1])
+plt.axis([0, 1, 0, 1.1])
+plt.xlabel('Normalized frequency')
+plt.ylabel('Amplitude response')
+plt.title('IIR highpass filter')
+
+
+# Plot group delay
+GD = sig.group_delay((b[:, 0], aa[:, 0]))
+rr = np.linspace(0, math.pi, num=512); rr=rr[:, np.newaxis]
+plt.subplot(2, 3, 2)
+plt.plot(rr / math.pi, GD[1])
+plt.axis([0, 1, 0, 20])
+plt.xlabel('Normalized frequency')
+plt.ylabel('Group delay')
+plt.title('IIR highpass filter')
+
+
+# Plot port-zeros
+plt.subplot(2, 3, 3)
+tfx = control.tf(b[:, 0], aa[: , 0])
+control.pzmap(tfx)
+plt.axis([-2, 2, -2, 2])
+plt.grid()
+plt.title('Port-Zero diagram')
+
+
+# Signal simulation
+nnn = np.arange(0, 201); nnn=nnn[:, np.newaxis]
+w1 = 0.3 * math.pi
+w2 = 0.7 * math.pi
+x = np.cos(w1 * nnn) + np.sin(w2 * nnn)
+plt.subplot(2, 3, 4)
+plt.plot(nnn, x)
+plt.axis([0, 200, -2, 2])
+plt.xlabel('n')
+plt.ylabel('Input x[n]')
+
+
+y = sig.lfilter(b[:, 0], aa[0,:], x[:, 0])
+plt.subplot(2, 3, 5)
+plt.plot(nnn, y)
+plt.axis([0, 200, -2, 2])
+plt.xlabel('n')
+plt.ylabel('Output y[n]')
+
+
+plt.show()
