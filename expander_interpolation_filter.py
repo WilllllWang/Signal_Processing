@@ -76,60 +76,6 @@ plt.ylabel('Amplitude of Fourier transform of x[n]')
 
 
 ##---------------------------##
-# When L = 2
-L = 2
-NL = N * L - (L - 1)
-xe = np.zeros((NL, 1))
-for i in range(0, N):
-    xe[i * L, 0] = x[i, 0]
-
-# Plot xd[n]
-plt.subplot(2, 4, 2)
-nn = np.arange(0, NL); nn=nn[: ,np.newaxis]
-plt.stem(nn, xe)
-plt.axis([0, 150, -0.1, 0.35])
-plt.xlabel('n')
-plt.ylabel('xe[n]')
-plt.title('L = 2')
-
-# Plot amplitude of Fourier transform of xd[n]
-rr = np.linspace(0, math.pi, num=Ns+1); rr=rr[:, np.newaxis]
-AR = np.absolute(sig.freqz(xe, 1, rr))
-plt.subplot(2, 4, 6)
-plt.plot(rr / math.pi, AR[1])
-plt.axis([0, 1, 0, 1.1])
-plt.xlabel('Normalized frequency')
-plt.ylabel('Amplitude of Fourier transform of xe[n]')
-
-
-##---------------------------##
-# When L = 3
-L = 3
-NL = N * L - (L - 1)
-xe = np.zeros((NL, 1))
-for i in range(0, N):
-    xe[i * L, 0] = x[i, 0]
-
-# Plot xe[n]
-plt.subplot(2, 4, 3)
-nn = np.arange(0, NL); nn=nn[: ,np.newaxis]
-plt.stem(nn, xe)
-plt.axis([0, 150, -0.1, 0.35])
-plt.xlabel('n')
-plt.ylabel('xe[n]')
-plt.title('L = 3')
-
-# Plot amplitude of Fourier transform of xe[n]
-rr = np.linspace(0, math.pi, num=Ns+1); rr=rr[:, np.newaxis]
-AR = np.absolute(sig.freqz(xe, 1, rr))
-plt.subplot(2, 4, 7)
-plt.plot(rr / math.pi, AR[1])
-plt.axis([0, 1, 0, 1.1])
-plt.xlabel('Normalized frequency')
-plt.ylabel('Amplitude of Fourier transform of xe[n]')
-
-
-##---------------------------##
 # When L = 4
 L = 4
 NL = N * L - (L - 1)
@@ -138,7 +84,7 @@ for i in range(0, N):
     xe[i * L, 0] = x[i, 0]
 
 # Plot xe[n]
-plt.subplot(2, 4, 4)
+plt.subplot(2, 4, 2)
 nn = np.arange(0, NL); nn=nn[: ,np.newaxis]
 plt.stem(nn, xe)
 plt.axis([0, 150, -0.1, 0.35])
@@ -149,7 +95,7 @@ plt.title('L = 4')
 # Plot amplitude of Fourier transform of xe[n]
 rr = np.linspace(0, math.pi, num=Ns+1); rr=rr[:, np.newaxis]
 AR = np.absolute(sig.freqz(xe, 1, rr))
-plt.subplot(2, 4, 8)
+plt.subplot(2, 4, 6)
 plt.plot(rr / math.pi, AR[1])
 plt.axis([0, 1, 0, 1.1])
 plt.xlabel('Normalized frequency')
