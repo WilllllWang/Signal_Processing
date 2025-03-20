@@ -37,13 +37,13 @@ def main():
     h[0: NH, 0] = 0.5 * np.flipud(A[:, 0])
     h[NH: N, 0] = -0.5 * A[:, 0]
 
-    # Plot input response
+    # Plot Impulse response
     plt.subplot(1, 2, 1)
     nn = np.arange(0, N); nn=nn[: ,np.newaxis]
     plt.stem(nn, h)
     plt.axis([0, N, -1.5, 1.5])
     plt.xlabel('n')
-    plt.ylabel('Input response')
+    plt.ylabel('Impulse response')
     plt.title('Case 4 differentiator')
     
     # Plot amplitude response

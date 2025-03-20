@@ -49,13 +49,13 @@ def main():
     h[0: NH, 0] = 0.5 * np.flipud(A[1: NH + 1, 0])
     h[NH + 1: N, 0] = 0.5 * A[1: NH + 1, 0]
 
-    # Plot input response
+    # Plot impulse response
     plt.subplot(2, 2, 1)
     nn = np.arange(0, N); nn=nn[: ,np.newaxis]
     plt.stem(h)
     plt.axis([0, N, -0.1, 0.5])
     plt.xlabel('n')
-    plt.ylabel('Input response')
+    plt.ylabel('Impulse response')
     plt.title('Case 1 lowpass filter')
     
     # Plot amplitude response
@@ -96,12 +96,12 @@ def main():
     for i in range(0, N):
         h[i, 0] = ((-1) ** i) * h[i, 0]
 
-    # Plot input response
+    # Plot Impulse response
     plt.subplot(2, 2, 1)
     plt.stem(nn, h)
     plt.axis([0, N, -0.5, 0.5])
     plt.xlabel('n')
-    plt.ylabel('Input response')
+    plt.ylabel('Impulse response')
     plt.title('Case 1 highpass filter')
 
     # Plot amplitude response

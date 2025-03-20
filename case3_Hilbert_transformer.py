@@ -39,13 +39,13 @@ def main():
     h[0: NH, 0] = 0.5 * np.flipud(A[0: NH, 0])
     h[NH + 1: N, 0] = -0.5 * A[0: NH, 0]
 
-    # Plot input response
+    # Plot Impulse response
     plt.subplot(1, 2, 1)
     nn = np.arange(0, N); nn=nn[: ,np.newaxis]
     plt.stem(h)
     plt.axis([0, N, -0.7, 0.7])
     plt.xlabel('n')
-    plt.ylabel('Input response')
+    plt.ylabel('Impulse response')
     plt.title('Case 3 Hilbert transformer')
     
     # Plot amplitude response
