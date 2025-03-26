@@ -1,5 +1,3 @@
-# Design of IIR digital filters
-
 import sys
 import math
 import control
@@ -8,10 +6,6 @@ from scipy import signal as sig
 from scipy import fft 
 from matplotlib import pyplot as plt
 from qpsolvers import solve_qp
-
-
-# MIN 1/2 x^T Q x+r^T x with Bx <= d
-# Solve qp(Q,r,B,d)
 
 def main():
     # First part calculates x
@@ -25,11 +19,11 @@ def main():
 ##-----------------First part-----------------##
 def firstPart():
     # Independent parameters
-    n = 14
-    m = 14
-    tau = 12
-    Ws = 0.475 * math.pi
-    Wp = 0.525 * math.pi
+    n = 15
+    m = 30
+    tau = 20
+    Wp = 0.5 * math.pi
+    Ws = 0.55 * math.pi
     Ns = 10000
     M = 100
     delta = 0.00001
@@ -39,12 +33,11 @@ def firstPart():
     j = complex(0, 1)
     nm = n + m + 1
     deltaW = math.pi / Ns
-    Ns_s = round(Ws / deltaW)
-    Ns_p = round((math.pi - Wp) / deltaW)
+    Ns_p = round(Wp / deltaW)
+    Ns_s = round((math.pi - Ws) / deltaW)
     deltaM = math.pi / M
     NV = np.arange(1, n + 1); NV=NV[:, np.newaxis] 
     MV = np.arange(0, m + 1); MV=MV[:, np.newaxis]
-
 
     # Main
     x = np.zeros((nm, 1))
@@ -62,20 +55,20 @@ def firstPart():
         # Stopband
         Qs = np.zeros((nm, nm)) 
         for iw in range(0, Ns_s + 1):
-            w = iw * deltaW
+            w = Ws + iw * deltaW
             eaw = np.exp(-j * NV * w)
-            WH = 1 / (abs(1 + np.transpose(a) @ eaw)) ** 2 # Omega hat 
+            WH = 1 / (abs(1 + np.transpose(a) @ eaw)) ** 2 
 
-            ew = np.vstack((np.zeros((n, 1)), -np.exp(-j * MV * w))) # [1, ebw]
+            ew = np.vstack((np.zeros((n, 1)), -np.exp(-j * MV * w))) 
             Qs = Qs + WH * (ew @ np.transpose(np.conjugate(ew)))
 
-        Qs *= Ws / (Ns_s + 1) # Get average
+        Qs *= (math.pi - Ws) / (Ns_s + 1)
 
         # Passband
-        r = np.zeros((nm , 1))
         Qp = np.zeros((nm, nm)) 
+        r = np.zeros((nm , 1))
         for iw in range(0, Ns_p + 1):
-            w =  Wp + iw * deltaW
+            w = iw * deltaW
             eaw = np.exp(-j * NV * w)
             WH = 1 / (abs(1 + np.transpose(a) @ eaw)) ** 2
             
@@ -83,11 +76,11 @@ def firstPart():
             r = r + WH * np.real(np.conjugate(np.exp(-j * tau * w)) * ew)
             Qp = Qp + WH * ew @ np.transpose(np.conjugate(ew))
 
-        r *= (math.pi - Wp) / (Ns_p + 1) # Get average
-        Qp *= (math.pi - Wp) / (Ns_p + 1)
+        r *= Wp / (Ns_p + 1) # Get average
+        Qp *= Wp / (Ns_p + 1)
 
+        
         Q = np.real(Qp + Qs) 
-
 
         B = np.zeros((M + 1, nm))
         for iw in range(0, M + 1):
@@ -96,8 +89,7 @@ def firstPart():
 
         d = (1 - delta) * np.ones((M + 1, 1))
 
-        
-        # Solve 
+        # Solve
         x = solve_qp(Q, r, B, d, solver = 'quadprog'); x=x[:, np.newaxis]
         a = x[0: n, 0]; a=a[:, np.newaxis]
         b = x[n: nm, 0]; b=b[:, np.newaxis]
@@ -106,7 +98,7 @@ def firstPart():
         deltaX = np.linalg.norm(x - xp) / np.linalg.norm(x)
         print(f"deltaX = {deltaX}\n") 
 
-    np.save("IIR_highpass_filter.npy", x)
+    np.save("IIR_lowpass_filter.npy", x)
 
 
 
@@ -114,8 +106,8 @@ def firstPart():
 ##----------------Second part-----------------##
 def secondPart():
     # Independent parameters
-    n = 14
-    m = 14
+    n = 15
+    m = 30
     Ns = 10000
 
     # Dependent parameters
@@ -124,7 +116,7 @@ def secondPart():
     MV = np.arange(0, m + 1); MV=MV[:, np.newaxis]
 
 
-    x = np.load("IIR_highpass_filter.npy")
+    x = np.load("IIR_lowpass_filter.npy")
     a = x[0: n, 0]; a=a[:, np.newaxis]
     b = x[n: nm, 0]; b=b[:, np.newaxis]
 
@@ -138,7 +130,7 @@ def secondPart():
     plt.axis([0, 1, 0, 1.1])
     plt.xlabel('Normalized frequency')
     plt.ylabel('Amplitude response')
-    plt.title('IIR highpass filter')
+    plt.title('IIR lowpass filter')
 
 
     # Plot group delay
@@ -149,7 +141,7 @@ def secondPart():
     plt.axis([0, 1, 0, 20])
     plt.xlabel('Normalized frequency')
     plt.ylabel('Group delay')
-    plt.title('IIR highpass filter')
+    plt.title('IIR lowpass filter')
 
 
     # Plot port-zeros
