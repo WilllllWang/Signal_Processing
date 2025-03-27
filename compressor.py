@@ -130,7 +130,7 @@ plt.ylabel('Amplitude of Fourier transform of xd[n]')
 
 
 ##---------------------------##
-# When M = 4, the signal is different
+# When M = 4, the signal is different at high frequency
 # So don't compress too much
 M = 4
 NM = math.ceil(N / M)
