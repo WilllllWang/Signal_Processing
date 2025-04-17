@@ -1,5 +1,5 @@
 # Design of a two channel filter bank
-# Textbook 4.7.6
+# Textbook 4.7.6, figure 4.4
 import math
 import numpy as np
 from scipy import signal as sig
@@ -183,16 +183,42 @@ def two_channel_filter_bank():
     for i in range(0, 201):
         if i % 2 == 1:
             xh0d2u2[i, 0] = 0
-    
+    plt.subplot(3, 3, 4)
+    plt.plot(nnn, xh0d2u2)
+    plt.axis([0, 200, -2, 2])
+    plt.xlabel('n')
+    plt.ylabel('xh[0]d2u2')    
+
     xh1d2u2 = xh1.copy()
     for i in range(0, 201):
         if i % 2 == 1:
             xh1d2u2[i, 0] = 0
-
+    plt.subplot(3, 3, 5)
+    plt.plot(nnn, xh1d2u2)
+    plt.axis([0, 200, -2, 2])
+    plt.xlabel('n')
+    plt.ylabel('xh[1]d2u2')
     
+    y0 = sig.lfilter(g0[:, 0], 1, xh0d2u2[:, 0]); y0=y0[:, np.newaxis]
+    plt.subplot(3, 3, 6)
+    plt.plot(nnn, y0)
+    plt.axis([0, 200, -2, 2])
+    plt.xlabel('n')
+    plt.ylabel('y[0]')
 
+    y1 = sig.lfilter(g1[:, 0], 1, xh1d2u2[:, 0]); y1=y1[:, np.newaxis]
+    plt.subplot(3, 3, 7)
+    plt.plot(nnn, y1)
+    plt.axis([0, 200, -2, 2])
+    plt.xlabel('n')
+    plt.ylabel('y[1]')
 
-
+    y = y0 + y1
+    plt.subplot(3, 3, 8)
+    plt.plot(nnn, y)
+    plt.axis([0, 200, -2, 2])
+    plt.xlabel('n')
+    plt.ylabel('y')
 
     plt.show()
     
