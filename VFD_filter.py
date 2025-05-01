@@ -66,6 +66,16 @@ b = -0.5 * np.linalg.inv(Qb) * rb
 a2 = np.reshape(a, (Mc, NH + 1)); a2=np.transpose(a2)
 b2 = np.reshape(a, (Ms, NH)); b2=np.transpose(b2)
 
+h2 = np.zeros((N + 1, M + 1))
+
+# m = 0
+h2[NH, 0] = 1
+
+# m: even
+for im in range(1, Mc + 1):
+    h2[NH, 2 * im] = a2[0, im - 1]
+    h2[0: NH, 2 * im] = 0.5 * np.flipud(a2[1: NH + 1, im - 1])
+    h2[NH + 1: N + 1, 2 * im] = 0.5 * a2[1: NH + 1, im - 1]
 
 
 
