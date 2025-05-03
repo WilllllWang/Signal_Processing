@@ -23,10 +23,9 @@ Mc = M // 2
 Ms = math.ceil(M / 2)
 nma = Mc * (NH + 1)
 nmb = Ms * NH
-NV = np.arange(0, NH + 1); NV=NV[:, np.newaxis]
-NV1 = np.arange(0, NH + 1); NV1=NV1[:, np.newaxis]
+NV = np.arange(0, NH + 1); NV = NV[:, np.newaxis]
+NV1 = np.arange(1, NH + 1); NV1 = NV1[:, np.newaxis]
 Nwp = (Nw + 1) * (Np + 1)
-
 
 ##---------------##
 # Calculate a
@@ -63,32 +62,62 @@ rb = (rb * Wp) / Nwp
 Qb = (Qb * Wp) / Nwp
 b = -0.5 * np.linalg.inv(Qb) * rb
 
-a2 = np.reshape(a, (Mc, NH + 1)); a2=np.transpose(a2)
-b2 = np.reshape(a, (Ms, NH)); b2=np.transpose(b2)
+a2 = np.reshape(a, (Mc, NH + 1)); a2 = np.transpose(a2)
+b2 = np.reshape(b, (Ms, NH)); b2 = np.transpose(b2)
+h2 = np.zeros((N + 1, M + 1))
+
+# when m=0
+h2[NH, 0] = 1
+
+# when m:even
+for im in range (1, Mc + 1):
+    h2[NH, 2 * im] = a2[0, im - 1]
+    h2[0: NH, 2 * im] = 0.5 * np.flipud(a2[1: NH + 1, im - 1])
+    h2[NH + 1: , 2 * im] = 0.5 * a2[1: , im - 1]
+
+## m:odd
+for im in range (1, Ms + 1):
+    h2[0: NH, 2*im - 1]= 0.5 * np.flipud(b2[: , im - 1])
+    h2[NH + 1: , 2*im - 1] = -0.5 * b2[:, im - 1]
+
+##---------------##
+# Plot Amplitude response and group delay
+MR = np.zeros((Nw + 1, Np + 1, 1))
+GD = np.zeros((512, Np + 1))
+h = np.zeros((N + 1, 1))
+for ip in range (0, Np + 1):
+    p = -0.5 + ip * deltaP
+    h = h2[:, 0]
+    for im in range (1, M + 1): 
+        h = h + (p**im) * h2[:, im]
+    rr = np.linspace(0, Wp, num=Nw + 1); rr = rr[:,np.newaxis]
+    AR = np.absolute(sig.freqz(h, 1, rr))
+    MR[:, ip] = AR[1]
+
+    GDD = sig.group_delay((h, 1))
+    GD[:, ip] = GDD[1]
+
+# Amplitude response
+plt.subplot(1, 2, 1)
+for ip in range (0, Np + 1): 
+    plt.plot(rr / math.pi, MR[:, ip])
+plt.axis([0, Wp / math.pi, 0, 1.1])
+plt.xlabel('Normalized frequency')
+plt.ylabel('Amplitude response')
+plt.title('VFD digital filter')
+
+# Group delay
+plt.subplot(1, 2, 2)
+rr = np.linspace(0, math.pi, num=512); rr = rr[:, np.newaxis]
+for ip in range (0, Np + 1): 
+    plt.plot(rr / math.pi, GD[:, ip])
+plt.axis([0, Wp / math.pi, NH - 1, NH + 1])
+plt.xlabel('Normalized frequency')
+plt.ylabel('Group delay')
+plt.title('VFD digital filter')  
+
+plt.show()
 
 
 
 
-
-
-
-# ##---------------##
-# # Plot group delay
-# GD = sig.group_delay((np.flipud(A[:, 0]), A[:, 0]))
-# rr = np.linspace(0, math.pi, num=512); rr=rr[:, np.newaxis]
-# plt.subplot(1, 2, 1)
-# plt.plot(rr / math.pi, GD[1])
-# plt.axis([0, 1, 60, 90])
-# plt.xlabel('Normalized frequency')
-# plt.ylabel('Group delay')
-# plt.title('IIR allpass filter')
-
-
-# # Plot port-zeros
-# plt.subplot(1, 2, 2)
-# tfx = control.tf(np.flipud(A[:, 0]), A[: , 0])
-# control.pzmap(tfx)
-# plt.axis([-2, 2, -2, 2])
-# plt.grid()
-# plt.title('Port-Zero diagram')
-# plt.show()
