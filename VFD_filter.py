@@ -1,17 +1,15 @@
 # Design of Variable Fractional Delay digital filter
 
 import math
-import control
 import numpy as np
 from scipy import signal as sig
 from matplotlib import pyplot as plt
-
 
 ##---------------##
 # Independent parameters
 N = 50
 M = 7
-Wp = 0.09 * math.pi
+Wp = 0.9 * math.pi
 Nw = 200
 Np = 60
 
@@ -43,7 +41,7 @@ for iw in range(0, Nw + 1):
 
 ra = (ra * Wp) / Nwp 
 Qa = (Qa * Wp) / Nwp
-a = -0.5 * np.linalg.inv(Qa) * ra
+a = (-0.5 * np.linalg.inv(Qa)) @ ra
 
 # Calculate b
 rb = np.zeros((nmb, 1))
@@ -60,7 +58,7 @@ for iw in range(0, Nw + 1):
 
 rb = (rb * Wp) / Nwp 
 Qb = (Qb * Wp) / Nwp
-b = -0.5 * np.linalg.inv(Qb) * rb
+b = (-0.5 * np.linalg.inv(Qb)) @ rb
 
 a2 = np.reshape(a, (Mc, NH + 1)); a2 = np.transpose(a2)
 b2 = np.reshape(b, (Ms, NH)); b2 = np.transpose(b2)
@@ -75,10 +73,10 @@ for im in range (1, Mc + 1):
     h2[0: NH, 2 * im] = 0.5 * np.flipud(a2[1: NH + 1, im - 1])
     h2[NH + 1: , 2 * im] = 0.5 * a2[1: , im - 1]
 
-## m:odd
+# m:odd
 for im in range (1, Ms + 1):
-    h2[0: NH, 2*im - 1]= 0.5 * np.flipud(b2[: , im - 1])
-    h2[NH + 1: , 2*im - 1] = -0.5 * b2[:, im - 1]
+    h2[0: NH, 2*im - 1]= 0.5 * np.flipud(b2[:, im - 1])
+    h2[NH + 1:, 2*im - 1] = -0.5 * b2[:, im - 1]
 
 ##---------------##
 # Plot Amplitude response and group delay
@@ -90,7 +88,7 @@ for ip in range (0, Np + 1):
     h = h2[:, 0]
     for im in range (1, M + 1): 
         h = h + (p**im) * h2[:, im]
-    rr = np.linspace(0, Wp, num=Nw + 1); rr = rr[:,np.newaxis]
+    rr = np.linspace(0, Wp, num=Nw + 1); rr = rr[:, np.newaxis]
     AR = np.absolute(sig.freqz(h, 1, rr))
     MR[:, ip] = AR[1]
 
@@ -104,7 +102,7 @@ for ip in range (0, Np + 1):
 plt.axis([0, Wp / math.pi, 0, 1.1])
 plt.xlabel('Normalized frequency')
 plt.ylabel('Amplitude response')
-plt.title('VFD digital filter')
+plt.title('VFD')
 
 # Group delay
 plt.subplot(1, 2, 2)
@@ -114,10 +112,6 @@ for ip in range (0, Np + 1):
 plt.axis([0, Wp / math.pi, NH - 1, NH + 1])
 plt.xlabel('Normalized frequency')
 plt.ylabel('Group delay')
-plt.title('VFD digital filter')  
+plt.title('VFD')  
 
 plt.show()
-
-
-
-
