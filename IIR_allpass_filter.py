@@ -5,8 +5,6 @@ import control
 import numpy as np
 from scipy import signal as sig
 from matplotlib import pyplot as plt
-from qpsolvers import solve_qp
-
 
 ##---------------##
 # Independent parameters
